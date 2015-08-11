@@ -8,24 +8,29 @@
 (declare hmac-sha-256)
 
 (defn ^:private webhook-path [mg & more]
-  (str "domains/" (:domain mg) "/webhooks" (when (seq more) (str "/" (clojure.string/join "/" more)))))
+  (apply core/api-url "domains" (:domain mg) "webhooks" more))
 
 (def all-names [:bounce :deliver :drop :spam :unsubscribe :click :open])
 
 (defn all [mailgun]
-  (core/get mailgun (webhook-path mailgun)))
+  (core/on-result (core/get mailgun (webhook-path mailgun))
+                  :webhooks))
 
 (defn info [mailgun hook-name]
-  (core/get mailgun (webhook-path mailgun (name hook-name))))
+  (core/on-result (core/get mailgun (webhook-path mailgun (name hook-name)))
+                  :webhook))
 
 (defn create [mailgun hook-name endpoint]
-  (core/post mailgun (webhook-path mailgun) :body {:id (name hook-name) :url endpoint}))
+  (core/on-result (core/post mailgun (webhook-path mailgun) :body {:id (name hook-name) :url endpoint})
+             :webhook))
 
 (defn update [mailgun hook-name endpoint]
-  (core/put mailgun (webhook-path mailgun (name hook-name)) :body {:url endpoint}))
+  (core/on-result (core/put mailgun (webhook-path mailgun (name hook-name)) :body {:url endpoint})
+                  :webhook))
 
 (defn delete [mailgun hook-name]
-  (core/delete mailgun (webhook-path mailgun (name hook-name))))
+  (core/on-result (core/delete mailgun (webhook-path mailgun (name hook-name)))
+                  :webhook))
 
 (defn is-valid? [mailgun payload]
   (let [input (str (:timestamp payload) (:token payload))

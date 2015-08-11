@@ -2,4 +2,4 @@
   (:require [mailgun.core :as core]))
 
 (defn for-event [{:keys [domain] :as mailgun} event]
-  (core/get mailgun (str domain "/stats") :query {:event (name event)}))
+  (core/on-result (core/get mailgun (core/api-url domain "stats") :query {:event (name event)})))

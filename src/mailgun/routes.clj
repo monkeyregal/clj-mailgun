@@ -14,7 +14,7 @@
   (format "forward(\"%s\")" email-or-endpoint))
 
 (defn store-action
-  ([] "store(notify=\"\")")
+  ([] "store()")
   ([notification-endpoint]
    (format "store(notify=\"%s\")" notification-endpoint)))
 
@@ -22,17 +22,22 @@
   "stop()")
 
 (defn all [mailgun]
-  (core/get mailgun "routes"))
+  (core/on-result (core/get mailgun (core/api-url "routes"))
+                  :items))
 
 (defn for-id [mailgun id]
-  (core/get mailgun (str "routes/" id)))
+  (core/on-result (core/get mailgun (core/api-url "routes" id))
+                  :route))
 
-(defn create [mailgun description priority filter actions]
-  (let [action (if (sequential? actions) actions [actions])]
-    (core/post mailgun "routes" :body {:description description
-                                     :priority priority
-                                     :expression filter
-                                     :action actions})))
+(defn create [mailgun description priority filter & actions]
+  (let [actions-v (into [] actions)]
+    (core/on-result (core/post mailgun (core/api-url "routes")
+                          :query {:description description
+                                 :priority priority
+                                 :expression filter
+                                 :action actions-v
+                                  })
+                    :route)))
 
 (defn delete [mailgun id]
-  (core/delete mailgun (str "routes/" id)))
+  (core/on-result (core/delete mailgun (core/api-url "routes" id))))

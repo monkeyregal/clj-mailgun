@@ -7,10 +7,10 @@
                  [commons-codec "1.10"]
                  [environ "1.0.0"]
                  [http.async.client "0.6.0"]
+                 [io.pedestal/pedestal.service "0.4.0" :exclusions [org.slf4j/slf4j-api]]
                  [org.clojure/clojure "1.7.0"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.slf4j/slf4j-api "1.7.12"]]
   :profiles {:dev
              {:resource-paths ["config"]
-              :dependencies [[io.pedestal/pedestal.jetty "0.4.0"]
-                             [io.pedestal/pedestal.service "0.4.0" :exclusions [org.slf4j/slf4j-api]]]}})
+              :dependencies [[io.pedestal/pedestal.jetty "0.4.0"]]}})
