@@ -6,10 +6,14 @@
 
 (defonce api-base "https://api.mailgun.net/v3/")
 
+(defprotocol Consumer
+  (push [_ type payload])
+  (pop  [_ type payload]))
+
 (defn ^:private request [client request-fn
                       default-headers url
                       {:keys [headers] :or {headers {}} :as params}]
-  (let [_ (log/info "Requesting: " url " with params: " params)
+  (let [_ (log/debug "Requesting: " url " with params: " params)
         params (assoc params :headers (merge default-headers headers))
         resp (apply request-fn client url (apply concat params))]
     resp))
@@ -63,3 +67,22 @@
   {:type :string
    :name name
    :value (str value)})
+
+(defn map-structure
+  [m]
+  (let [f-seq (fn [v]
+                (if-let [fst (first v)]
+                  (if (map? fst)
+                    (conj (empty v) (into {} (map-structure fst)))
+                    (conj (empty v) (symbol (.getSimpleName (type fst)))))
+                  (empty v)))
+        f-map (fn [[k v]]
+            (if (map? v)
+              [k v]
+              (if (sequential? v)
+                [k (f-seq v)]
+                [k (symbol (.getSimpleName (type v)))])))]
+    ;; only apply to maps
+    (clojure.walk/postwalk (fn [x]
+                             (if (map? x) (into {} (map f-map x))
+                               x)) m)))
